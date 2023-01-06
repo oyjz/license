@@ -31,7 +31,7 @@ func GetID() string {
 }
 
 // CheckLicense 校验授权
-func CheckLicense() {
+func CheckLicense() error {
 	if err := gorsa.RSA.SetPublicKey(publicKey); err != nil {
 		panic(err)
 	}
@@ -39,23 +39,24 @@ func CheckLicense() {
 	// 读取license
 	data, err := os.ReadFile("./config/license")
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// base64解码
 	data1, err := base64.StdEncoding.DecodeString(string(data))
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// rsa解密
 	id, err := gorsa.RSA.PubKeyDECRYPT(data1)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	if GetID() != string(id) {
-		panic(errors.New("invalid license"))
+		return errors.New("invalid license")
 	}
+	return nil
 }
 
 // GetMac 获取Mac

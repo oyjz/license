@@ -84,14 +84,9 @@ func GetMac() (macAdds string) {
 
 // Encrypt 使用公钥加密指定字符串
 func Encrypt(data string) (string, error) {
-
-	if err := gorsa.RSA.SetPublicKey(publicKey); err != nil {
-		return "", errors.New("unknown exception 1001")
-	}
-	// rsa加密
-	result, err := gorsa.RSA.PubKeyENCTYPT([]byte(data))
+	result, err := gorsa.PublicEncrypt(data, publicKey)
 	if err != nil {
-		return "", errors.New("encrypt failed 1002")
+		return "", err
 	}
-	return string(result), nil
+	return result, nil
 }

@@ -33,28 +33,28 @@ func GetID() string {
 // CheckLicense 校验授权
 func CheckLicense() error {
 	if err := gorsa.RSA.SetPublicKey(publicKey); err != nil {
-		panic(err)
+		return errors.New("unknown exception 1001")
 	}
 
 	// 读取license
 	data, err := os.ReadFile("./config/license")
 	if err != nil {
-		return err
+		return errors.New("license file not found 1002")
 	}
 
 	// base64解码
 	data1, err := base64.StdEncoding.DecodeString(string(data))
 	if err != nil {
-		return err
+		return errors.New("license content is invalid 1003")
 	}
 
 	// rsa解密
 	id, err := gorsa.RSA.PubKeyDECRYPT(data1)
 	if err != nil {
-		return err
+		return errors.New("license content is invalid 1004")
 	}
 	if GetID() != string(id) {
-		return errors.New("invalid license")
+		return errors.New("license content is invalid 1005")
 	}
 	return nil
 }
@@ -80,4 +80,18 @@ func GetMac() (macAdds string) {
 		}
 	}
 	return macAdds
+}
+
+// Encrypt 使用公钥加密指定字符串
+func Encrypt(data string) (string, error) {
+
+	if err := gorsa.RSA.SetPublicKey(publicKey); err != nil {
+		return "", errors.New("unknown exception 1001")
+	}
+	// rsa加密
+	result, err := gorsa.RSA.PubKeyENCTYPT([]byte(data))
+	if err != nil {
+		return "", errors.New("encrypt failed 1002")
+	}
+	return string(result), nil
 }

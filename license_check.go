@@ -31,13 +31,13 @@ func GetID() string {
 }
 
 // CheckLicense 校验授权
-func CheckLicense() error {
+func CheckLicense(file string) error {
 	if err := gorsa.RSA.SetPublicKey(publicKey); err != nil {
 		return errors.New("unknown exception 1001")
 	}
 
 	// 读取license
-	data, err := os.ReadFile("./config/license")
+	data, err := os.ReadFile(file)
 	if err != nil {
 		return errors.New("license file not found 1002")
 	}

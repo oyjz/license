@@ -31,7 +31,7 @@ func GetID() string {
 }
 
 // CheckLicense 校验授权
-func CheckLicense(file string) error {
+func CheckLicense(file string, key string) error {
 	if err := gorsa.RSA.SetPublicKey(publicKey); err != nil {
 		return errors.New("unknown exception 1001")
 	}
@@ -53,7 +53,8 @@ func CheckLicense(file string) error {
 	if err != nil {
 		return errors.New("license content is invalid 1004")
 	}
-	if GetID() != string(id) {
+	idKey := GetID() + key
+	if idKey != string(id) {
 		return errors.New("license content is invalid 1005")
 	}
 	return nil

@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/wenzhenxi/gorsa"
 )
@@ -22,6 +23,8 @@ Eiy8cugCG294Mc/SX/plRz4eCrjyGo1r4bWw7WxUB/Rt1blALJpLsFaN0M/9vmOM
 osw6y4SgljETZO5Hd7rQHDUipXd8g/8l5SoSoV1tNubH8v03dlAbDPZnG+c+Le+c
 2wIDAQAB
 -----END PUBLIC KEY-----`
+
+var LicenseExpired = errors.New("license is expired.")
 
 // GetID 获取机器码
 func GetID() string {
@@ -56,7 +59,7 @@ func CheckLicense(file string, key string) ([]string, error) {
 	}
 	// 解析授权文件内容
 	result := strings.Split(string(id), "###")
-	if len(result) == 0 {
+	if len(result) < 3 {
 		return nil, errors.New("license content is invalid 1005")
 	}
 	// 机器码不匹配
@@ -64,10 +67,18 @@ func CheckLicense(file string, key string) ([]string, error) {
 		return nil, errors.New("license content is invalid 1006")
 	}
 	// Key不匹配
-	if len(result) == 2 && key != "" && key != result[1] {
+	if key != "" && key != result[1] {
 		return nil, errors.New("license content is invalid 1007")
 	}
-	return result[2:], nil
+	// 已过期
+	t, err := time.Parse("2006-01-02", result[2])
+	if err != nil {
+		return nil, errors.New("license content is invalid 1008")
+	}
+	if t.Unix()+86400 <= time.Now().Unix() {
+		return nil, LicenseExpired
+	}
+	return result[3:], nil
 }
 
 // GetMac 获取Mac

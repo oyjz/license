@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 
 	"github.com/wenzhenxi/gorsa"
 )
@@ -31,33 +32,42 @@ func GetID() string {
 }
 
 // CheckLicense 校验授权
-func CheckLicense(file string, key string) error {
+func CheckLicense(file string, key string) ([]string, error) {
 	if err := gorsa.RSA.SetPublicKey(publicKey); err != nil {
-		return errors.New("unknown exception 1001")
+		return nil, errors.New("unknown exception 1001")
 	}
 
 	// 读取license
 	data, err := os.ReadFile(file)
 	if err != nil {
-		return errors.New("license file not found 1002")
+		return nil, errors.New("license file not found 1002")
 	}
 
 	// base64解码
 	data1, err := base64.StdEncoding.DecodeString(string(data))
 	if err != nil {
-		return errors.New("license content is invalid 1003")
+		return nil, errors.New("license content is invalid 1003")
 	}
 
 	// rsa解密
 	id, err := gorsa.RSA.PubKeyDECRYPT(data1)
 	if err != nil {
-		return errors.New("license content is invalid 1004")
+		return nil, errors.New("license content is invalid 1004")
 	}
-	idKey := GetID() + key
-	if idKey != string(id) {
-		return errors.New("license content is invalid 1005")
+	// 解析授权文件内容
+	result := strings.Split(string(id), "###")
+	if len(result) == 0 {
+		return nil, errors.New("license content is invalid 1005")
 	}
-	return nil
+	// 机器码不匹配
+	if GetID() != result[0] {
+		return nil, errors.New("license content is invalid 1006")
+	}
+	// Key不匹配
+	if len(result) == 2 && key != "" && key != result[1] {
+		return nil, errors.New("license content is invalid 1007")
+	}
+	return result[2:], nil
 }
 
 // GetMac 获取Mac
